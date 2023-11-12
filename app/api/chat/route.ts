@@ -42,6 +42,29 @@ Standalone question:`,
   console.log("\n====================================");
   console.log("Standalone question:", answer.content);
 
+
+ // Extract the language of conversation to later query the vector db.
+ const language = await contextSearchModel.call(
+  parseMessages([
+    ...messages,
+    {
+      id: "0",
+      role: "system",
+      content: `Given the conversation, determine the language used. Reply only with the language, nothing else.
+----------
+The language of conversation is:`,
+    },
+  ])
+);
+
+
+
+let languageInstructionString = "";
+if(language && language.content && language.content !== "English") languageInstructionString = `Thranslate the answer into ${language.content.replace(/(\r\n|\n|\r)/gm, "").replace(".", "")}, give me just the translated answer in requested language, without stating the language of the answer or the answer in English`;
+console.log(language.content, " => Language instruction:", languageInstructionString);
+console.log("\n========================================================================");
+
+
   let systemInstructions = "";
 
   // Get the standalone question and search the vector db.
@@ -72,10 +95,15 @@ Please provide a summary of the relevant article(s), along with the source link(
 If an answer is not explicitly covered in the provided context, please indicate so. 
 Answer any legal questions and legan questions only. Do not answer any non legan questions like entertainment, 
 physics, medicine, actors, or so on. Do not answer any question that is not related to Swiss Law, like random question or who is
+${languageInstructionString}
 
 ----
 
 CONTEXT: ${contextString}`;
+
+console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+console.log("Model instructions: ", systemInstructions)
+
 
   // Call and stream the LLM with the instructions, context and user messages.
   const stream = await chatModel
