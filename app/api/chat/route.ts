@@ -58,13 +58,18 @@ The language of conversation is:`,
 );
 
 
-
 let languageInstructionString = "";
-if(language && language.content && language.content !== "English") languageInstructionString = `Thranslate the answer into ${language.content.replace(/(\r\n|\n|\r)/gm, "").replace(".", "")}, give me just the translated answer in requested language, without stating the language of the answer or the answer in English`;
-console.log(language.content, " => Language instruction:", languageInstructionString);
-console.log("\n========================================================================");
 
-
+if(language && language.content) {
+  let langString = language.content;
+  if(langString.includes("The language of conversation is")) {
+    langString = langString.slice(32);
+  }
+  const languageName = langString.replace(/(\r\n|\n|\r)/gm, "").replace(".", "");
+  if(langString !== "English") {
+    languageInstructionString = `Translate the answer into ${languageName}`;
+  }
+}
   let systemInstructions = "";
 
   // Get the standalone question and search the vector db.
